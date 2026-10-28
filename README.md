@@ -18,11 +18,11 @@ redistributed (section 3).
 0. Getting the material
 -----------------------
 
-    git clone https://github.com/USERNAME/CAS-YOLO.git
+    git clone https://github.com/Liu67-xu/CAS-YOLO.git
     cd CAS-YOLO
 
-Replace USERNAME with the account that hosts this repository. The repository is
-the working copy, so every file can be browsed and diffed on its own.
+The repository is the working copy, so every file can be browsed, opened and
+diffed on its own.
 
 Python 3.11 and about 20 MB of disk are needed for the code and the weights.
 The images are added separately, see section 3.

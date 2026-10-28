@@ -2,6 +2,8 @@ cff-version: 1.2.0
 message: "If you use these annotations, weights or code, please cite the accompanying manuscript and this repository."
 title: "CAS-YOLO: annotations, trained weights and code for small-object detection of cucumber growth stages"
 abstract: "Four-stage cucumber growth-stage annotations, the exact train/validation/test file lists, the weights of CAS-YOLO and of the YOLOv8n baseline, and the code needed to reproduce the reported metrics."
+repository-code: "https://github.com/Liu67-xu/CAS-YOLO"
+url: "https://github.com/Liu67-xu/CAS-YOLO"
 type: software
 license: AGPL-3.0
 version: 3
