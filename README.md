@@ -77,7 +77,7 @@ code/configs/yolov8_C2fAtt_CA_asff.yaml   Model definition: C2f_Att with
                                       coordinate attention in the backbone,
                                       ASFF in the neck
 code/configs/cucumber_dataset.yaml    Dataset definition (edit `path:` once)
-code/set_path.py                      Writes the archive location into it
+code/set_path.py                      Writes the repository location into it
 code/ultralytics/nn/modules/block.py  C2f_Att: coordinate attention embedded in
                                       the C2f residual branches ("CA" argument)
 code/ultralytics/nn/Attmodules/       ASFF (adaptive spatial feature fusion) and
@@ -89,7 +89,7 @@ code/scripts/merge_background.py      BG-Aux: merging those patches into train1,
 code/train_example.py                 Training script reproducing the setup
 environment.txt                       Versions actually used
 VERSION.txt                           What changed with respect to the first upload
-checksums.txt                         SHA-256 of every file in this archive
+checksums.txt                         SHA-256 of every file in this repository
 requirements.txt                      Pinned versions of the packages used
 CITATION.cff                          Machine-readable citation metadata
 THIRD_PARTY_NOTICES.md                Licence of the files derived from Ultralytics
@@ -154,7 +154,7 @@ Step 1 - patch the installed package, otherwise the weights cannot be unpickled
     cp -r code/ultralytics/* <site-packages>/ultralytics/
 
 Step 2 - put the images under data/images/<split>/ and point the dataset
-definition at this archive:
+definition at this repository:
 
     python code/set_path.py
 

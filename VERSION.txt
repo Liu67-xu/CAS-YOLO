@@ -1,7 +1,7 @@
 Versions are listed oldest first; the current version is the last one.
 
-CAS-YOLO data and code archive
-==============================
+CAS-YOLO data and code repository
+================================
 
 Version   2
 Date      27 October 2026
