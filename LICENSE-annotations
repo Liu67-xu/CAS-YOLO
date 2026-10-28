@@ -1,0 +1,14 @@
+Annotations and model weights
+=============================
+
+The four-stage bounding-box annotations in data/labels/ and the trained weights
+in weights/ are released under the Creative Commons Attribution 4.0
+International licence (CC BY 4.0), https://creativecommons.org/licenses/by/4.0/.
+
+You are free to share and adapt this material for any purpose, provided that
+appropriate credit is given, a link to the licence is supplied, and any changes
+are indicated. Please cite the accompanying manuscript.
+
+The source images are NOT included in this archive. They were obtained from
+four third-party sources; each keeps its own licence, recorded in
+data/SOURCE_GROUPS.csv. Nothing in this licence overrides those terms.

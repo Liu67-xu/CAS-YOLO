@@ -1,0 +1,16 @@
+Verified environment
+====================
+
+    OS            Windows 11
+    Python        3.11
+    PyTorch       2.5.0+cu118
+    torchvision   0.20.0+cu118
+    Ultralytics   8.3.163  (with the files in code/ultralytics/ copied over)
+    NumPy         1.26.4
+    OpenCV        4.9.0.80
+    Pillow        10.4.0
+    SciPy         1.13.0
+    GPU           NVIDIA GeForce RTX 4060 Laptop, 8 GB
+    CUDA toolkit  11.8
+
+Batch size 20 fits in 8 GB of GPU memory at imgsz 640 with AMP enabled.

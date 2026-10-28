@@ -1,0 +1,24 @@
+cff-version: 1.2.0
+message: "If you use these annotations, weights or code, please cite the accompanying manuscript and this repository."
+title: "CAS-YOLO: annotations, trained weights and code for small-object detection of cucumber growth stages"
+abstract: "Four-stage cucumber growth-stage annotations, the exact train/validation/test file lists, the weights of CAS-YOLO and of the YOLOv8n baseline, and the code needed to reproduce the reported metrics."
+type: software
+license: AGPL-3.0
+version: 3
+date-released: 2026-10-28
+authors:
+  - family-names: Liu
+    given-names: Xu
+    affiliation: "Xiangtao College, Wuhan University of Science and Technology, Wuhan, Hubei 430065, China"
+  - family-names: Sun
+    given-names: Wei
+    affiliation: "Xiangtao College, Wuhan University of Science and Technology, Wuhan, Hubei 430065, China"
+    email: sw@wust.edu.cn
+keywords:
+  - object detection
+  - small objects
+  - cucumber growth stage
+  - YOLOv8
+  - coordinate attention
+  - adaptive spatial feature fusion
+  - background auxiliary learning

@@ -1,0 +1,32 @@
+# Dataset definition for the four-stage cucumber dataset.
+#
+# STEP 1 - set the dataset root once:
+#     python code/set_path.py
+#   which rewrites the `path:` line below with the absolute location of this
+#   archive. Do it manually if you prefer.
+#
+# STEP 2 - put the source images here (they cannot be redistributed, see
+#   section 3 of README.md and data/SOURCE_GROUPS.csv):
+#
+#   <this archive>/
+#     data/images/train1/*.jpg     <- add locally (3,332)
+#     data/images/train/*.jpg      <- add locally (5,332, incl. 2,000 bg patches)
+#     data/images/valid/*.jpg      <- add locally (567)
+#     data/images/test/*.jpg       <- add locally (375)
+#     data/labels/...              <- provided
+#     data/splits/*.txt            <- provided, exact file lists
+#
+#   File names must match the annotations, i.e. abc.jpg next to abc.txt.
+
+path: /absolute/path/to/CAS-YOLO_data_and_code   # <-- set by code/set_path.py
+
+train: data/images/train1
+val: data/images/valid
+test: data/images/test
+
+nc: 4
+names:
+  0: developing_cucumber
+  1: maturing_cucumber
+  2: spotting_cucumber
+  3: rotting_cucumber

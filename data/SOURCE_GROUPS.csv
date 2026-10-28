@@ -1,0 +1,5 @@
+group,images,file_pattern,provider,project_page,license,note
+"D1_A",477,"D1_A_*.jpg","Roboflow Universe - Cucumber (v2, 477 images)","https://universe.roboflow.com/1-nnubz/cucumber-flvuf/dataset/2","CC BY 4.0",""
+"D1_B",1000,"D1_B_*.jpg","Roboflow Universe - cucumber (v1, 1000 images)","https://universe.roboflow.com/khuyennguyen/cucumber-orzop/dataset/1","CC BY 4.0",""
+"D2",773,"D2_*.jpg","Roboflow Universe - cucumber (v4, 3066 images; 773 used here)","https://universe.roboflow.com/shao/cucumber-g2wfp/dataset/4","CC BY 4.0","two disease subsets: Belly-Rot 386, Pythium-Fruit-Rot 387"
+"D1_S",2024,"D1_S_*.jpg","greenhouse cucumber images collected from the web and re-annotated by the authors","n/a - no single project page for web-collected images","third-party photographs, not redistributed","file names retained from the export (D1_S_0001 - D1_S_2235)"

@@ -1,0 +1,12 @@
+# Versions actually used for the results reported in the manuscript.
+# See environment.txt for the full verified environment.
+#
+# PyTorch with CUDA 11.8 has to come from the PyTorch index, not from PyPI:
+#   pip install torch==2.5.0 torchvision==0.20.0 --index-url https://download.pytorch.org/whl/cu118
+torch==2.5.0
+torchvision==0.20.0
+ultralytics==8.3.163
+numpy==1.26.4
+opencv-python==4.9.0.80
+Pillow==10.4.0
+scipy==1.13.0

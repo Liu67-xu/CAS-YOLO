@@ -1,0 +1,47 @@
+Versions are listed oldest first; the current version is the last one.
+
+CAS-YOLO data and code archive
+==============================
+
+Version   2
+Date      27 October 2026
+DOI       10.5281/zenodo.23058154
+
+This version supersedes the initial upload and responds to the editorial
+request that the data and the code be placed in a single, directly accessible
+location. Changes with respect to the initial upload:
+
+  + data/splits/*.txt          exact file lists of the four splits, so that the
+                               567-image validation split can be rebuilt exactly
+  + weights/YOLOv8n_baseline_best.pt
+                               baseline weights of the comparison table
+  + data/SOURCE_GROUPS.csv     project page and licence of every image group
+  + data/image_sources.csv     per-image provenance (4,274 rows)
+  + environment.txt            versions actually used
+  + code/configs/cucumber_dataset.yaml, code/set_path.py
+                               working dataset definition (the previous upload
+                               left the dataset root unresolved)
+  + README.md                  reproduction commands with the expected numbers
+  - classes.txt                stray Roboflow class-list file removed from the
+                               training labels (it is not an annotation and made
+                               the label count disagree with the image count)
+
+Version   3
+Date      28 October 2026
+
+This version responds to the editorial request that the material be placed in an
+unarchived, version-controlled repository rather than in a single static archive
+file, so that reviewers and readers can inspect individual files and scripts.
+
+  + the material is now maintained as a Git repository; no content moved
+  + THIRD_PARTY_NOTICES.md   licence status of the files derived from Ultralytics
+  + CITATION.cff             machine-readable citation metadata
+  + requirements.txt         pinned versions of the packages used
+  * the root LICENSE is now AGPL-3.0, because the repository distributes
+    modified Ultralytics files that are themselves AGPL-3.0; the files written
+    by the authors remain additionally available under the MIT licence, see
+    THIRD_PARTY_NOTICES.md
+
+No annotation, weight, split list or reported number changed with respect to
+version 2. checksums.txt has been regenerated to cover the files added here.
+
