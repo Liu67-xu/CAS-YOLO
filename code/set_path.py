@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
-"""Point configs/cucumber_dataset.yaml at the absolute location of this archive."""
+"""Point configs/cucumber_dataset.yaml at the absolute location of this repository."""
 from pathlib import Path
 
-HERE = Path(__file__).resolve().parent          # <archive>/code
-ROOT = HERE.parent                              # <archive>
+HERE = Path(__file__).resolve().parent          # <repository>/code
+ROOT = HERE.parent                              # <repository>
 YAML = HERE / "configs" / "cucumber_dataset.yaml"
 
 out, done = [], False

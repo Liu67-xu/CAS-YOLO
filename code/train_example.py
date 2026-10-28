@@ -8,12 +8,16 @@ results reported in the paper.
   3. place the source images next to the annotations, run code/set_path.py
   4. python code/train_example.py
 """
+from pathlib import Path
+
 from ultralytics import YOLO
 
+HERE = Path(__file__).resolve().parent  # <repository>/code
+
 if __name__ == "__main__":
-    model = YOLO("configs/yolov8_C2fAtt_CA_asff.yaml")
+    model = YOLO(str(HERE / "configs" / "yolov8_C2fAtt_CA_asff.yaml"))
     model.train(
-        data="configs/cucumber_dataset.yaml",
+        data=str(HERE / "configs" / "cucumber_dataset.yaml"),
         epochs=100,
         patience=30,
         batch=20,

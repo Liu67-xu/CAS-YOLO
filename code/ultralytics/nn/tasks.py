@@ -1686,10 +1686,10 @@ def parse_model(d, ch, verbose=True):
         }
     )
 
-    # 注意力模块
-    # attn_modules = frozenset({SE, CA,})  # 逐步加
+    # attention modules
+    # attn_modules = frozenset({SE, CA,})  # extended step by step
     attn_modules = frozenset({SE, ECA, CA, SimAM, SK, BAM, A2, SLAM,
-                              TripletAttention, CBAM, GAM, SCSA, EMA, ACmix, ELA})  # 逐步加
+                              TripletAttention, CBAM, GAM, SCSA, EMA, ACmix, ELA})  # extended step by step
 
     for i, (f, n, m, args) in enumerate(d["backbone"] + d["head"]):  # from, number, module, args
         m = (
@@ -1741,18 +1741,18 @@ def parse_model(d, ch, verbose=True):
         elif m is Concat:
             c2 = sum(ch[x] for x in f)
 
-            # 在这里加：注意力模块（输入输出通道不变，但构造函数需要 channels）
+            # attention modules: in/out channels are unchanged, but the constructor needs channels
         elif m in attn_modules:
             c2 = ch[f] if isinstance(f, int) else ch[f[-1]]
-            args = [c2, *args]  # 注入 channels: SE(C, ...)
+            args = [c2, *args]  # inject channels: SE(C, ...)
 
-        elif m is ASFF:  # 多输入自适应空间特征融合
+        elif m is ASFF:  # multi-input adaptive spatial feature fusion
             args = [args[0], [ch[x] for x in f], args[1]]  # [level, in_channels, out_channels]
             c2 = make_divisible(min(args[2], max_channels) * width, 8)
             args[2] = c2
 
-        elif m is CARAFE:  # 内容感知上采样 (通道保持, 用实时输入通道)
-            args = [ch[f]]  # c = 实际输入通道 (已含 width 缩放)
+        elif m is CARAFE:  # content-aware upsampling (channels kept, uses live input channels)
+            args = [ch[f]]  # c = actual input channels (width scaling already applied)
 
         elif m in frozenset(
             {

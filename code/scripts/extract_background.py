@@ -1,11 +1,13 @@
 """
-从训练图片中提取背景区域，生成纯背景负样本。
+Extract background regions from the training images to build background
+negative samples.
 
-策略：
-1. 读取每张训练图的 YOLO 标注 (归一化 bbox)
-2. 将 bbox 区域视为"被占用的前景"
-3. 从非占用区域随机裁取 patch，作为背景样本
-4. 可选：也保存将黄瓜区域涂黑的完整图
+Strategy:
+1. read the YOLO annotation of each training image (normalised boxes)
+2. treat the box regions as "occupied foreground"
+3. crop patches at random from the unoccupied region and keep them as background
+   samples
+4. optionally, also save the full image with the cucumber regions blacked out
 """
 
 import cv2
@@ -17,7 +19,7 @@ from collections import defaultdict
 
 
 def yolo_to_pixel(bbox, img_w, img_h):
-    """YOLO 归一化坐标 -> 像素坐标 (x1, y1, x2, y2)"""
+    """YOLO normalised coordinates -> pixel coordinates (x1, y1, x2, y2)."""
     cx, cy, w, h = bbox
     x1 = int((cx - w / 2) * img_w)
     y1 = int((cy - h / 2) * img_h)
@@ -31,17 +33,17 @@ def yolo_to_pixel(bbox, img_w, img_h):
 
 
 def bboxes_overlap(a, b):
-    """两个 bbox 是否重叠 (像素坐标)"""
+    """Whether two boxes overlap (pixel coordinates)."""
     ax1, ay1, ax2, ay2 = a
     bx1, by1, bx2, by2 = b
-    # 不重叠的判断
+    # separated along at least one axis
     if ax2 <= bx1 or bx2 <= ax1 or ay2 <= by1 or by2 <= ay1:
         return False
     return True
 
 
 def compute_iou(a, b):
-    """计算两个 bbox 的 IoU"""
+    """IoU of two boxes."""
     ax1, ay1, ax2, ay2 = a
     bx1, by1, bx2, by2 = b
     inter_x1 = max(ax1, bx1)
@@ -57,7 +59,7 @@ def compute_iou(a, b):
 
 
 def patch_overlaps_any(patch_bbox, cucumber_bboxes, iou_thresh=0.05):
-    """检查 patch 是否与任何黄瓜 bbox 有显著重叠"""
+    """Whether the patch overlaps any cucumber box above the IoU threshold."""
     for cb in cucumber_bboxes:
         iou = compute_iou(patch_bbox, cb)
         if iou > iou_thresh:
@@ -67,8 +69,9 @@ def patch_overlaps_any(patch_bbox, cucumber_bboxes, iou_thresh=0.05):
 
 def create_background_mask(img_h, img_w, cucumber_bboxes, expand_ratio=0.15):
     """
-    创建背景 mask，1=背景可裁切区域，0=黄瓜占用区域。
-    expand_ratio: 将 bbox 向外扩展 N%，避免裁到黄瓜边缘。
+    Build a background mask: 1 = free for cropping, 0 = occupied by cucumber.
+    expand_ratio: grow each box by this fraction so that the margins of a
+    cucumber are not cropped as background.
     """
     mask = np.ones((img_h, img_w), dtype=np.uint8)
     for x1, y1, x2, y2 in cucumber_bboxes:
@@ -95,18 +98,19 @@ def extract_background_patches(
     max_attempts_per_image=50,
 ):
     """
-    主函数：从训练图中提取背景 patch。
+    Main routine: extract background patches from the training images.
 
     Args:
-        image_dir: 训练图片目录
-        label_dir: YOLO 标签目录
-        output_img_dir: 输出背景图片目录
-        output_label_dir: 输出标签目录（都是空文件）
-        num_patches_per_image: 每张图最多提取几个 patch
-        patch_sizes: 裁切尺寸候选（随机选择）
-        iou_thresh: patch 与黄瓜 bbox 的 IoU 阈值，超过则跳过
-        expand_ratio: bbox 向外扩展比例（避免裁到黄瓜边缘）
-        max_attempts_per_image: 每张图最多尝试几次
+        image_dir: directory of the training images
+        label_dir: directory of the YOLO labels
+        output_img_dir: output directory for the background images
+        output_label_dir: output directory for the labels (all empty files)
+        num_patches_per_image: maximum number of patches taken from one image
+        patch_sizes: candidate crop sizes, chosen at random
+        iou_thresh: IoU threshold against the cucumber boxes; above it the patch
+            is discarded
+        expand_ratio: how far each box is grown, to keep cucumber edges out
+        max_attempts_per_image: maximum number of draws per image
     """
     os.makedirs(output_img_dir, exist_ok=True)
     os.makedirs(output_label_dir, exist_ok=True)
@@ -127,7 +131,7 @@ def extract_background_patches(
 
     for img_file in image_files:
         img_path = os.path.join(image_dir, img_file)
-        # 找对应的 label 文件
+        # matching label file
         base = os.path.splitext(img_file)[0]
         label_file = base + ".txt"
         label_path = os.path.join(label_dir, label_file)
@@ -135,13 +139,13 @@ def extract_background_patches(
         if not os.path.exists(label_path):
             continue
 
-        # 读取图片
+        # read the image
         img = cv2.imread(img_path)
         if img is None:
             continue
         img_h, img_w = img.shape[:2]
 
-        # 读取标签
+        # read the labels
         cucumber_bboxes = []
         with open(label_path, "r") as f:
             for line in f:
@@ -152,7 +156,7 @@ def extract_background_patches(
                 cls_id = int(parts[0])
                 cx, cy, w, h = map(float, parts[1:5])
                 x1, y1, x2, y2 = yolo_to_pixel([cx, cy, w, h], img_w, img_h)
-                # 跳过面积太小的 bbox（可能是标注错误）
+                # skip boxes that are too small to be real annotations
                 if (x2 - x1) * (y2 - y1) > 16:
                     cucumber_bboxes.append((x1, y1, x2, y2))
 
@@ -162,7 +166,7 @@ def extract_background_patches(
 
         stats["processed"] += 1
 
-        # 创建背景 mask
+        # build the background mask
         bg_mask = create_background_mask(img_h, img_w, cucumber_bboxes, expand_ratio)
 
         patches_got = 0
@@ -172,7 +176,7 @@ def extract_background_patches(
             attempts += 1
             patch_size = random.choice(patch_sizes)
 
-            # 确保 patch 不超出图像边界
+            # keep the patch inside the image
             if img_w < patch_size or img_h < patch_size:
                 patch_size = min(img_w, img_h, patch_size)
 
@@ -186,23 +190,23 @@ def extract_background_patches(
 
             patch_bbox = (px, py, px + patch_size, py + patch_size)
 
-            # 检查是否与黄瓜重叠
+            # reject patches that overlap a cucumber
             if patch_overlaps_any(patch_bbox, cucumber_bboxes, iou_thresh):
                 continue
 
-            # 检查 mask 区域内背景像素占比
+            # require that the patch is almost entirely background
             patch_mask = bg_mask[py:py+patch_size, px:px+patch_size]
             bg_ratio = patch_mask.mean()
-            if bg_ratio < 0.85:  # 至少 85% 是纯背景
+            if bg_ratio < 0.85:  # at least 85 % background
                 continue
 
-            # 裁切并保存
+            # crop and save
             patch = img[py:py+patch_size, px:px+patch_size]
             out_name = f"bg_{base}_{patch_size}_{px}_{py}.jpg"
             out_img_path = os.path.join(output_img_dir, out_name)
             cv2.imwrite(out_img_path, patch)
 
-            # 创建空标签文件
+            # empty label file
             out_label_path = os.path.join(output_label_dir, out_name.replace(".jpg", ".txt"))
             open(out_label_path, "w").close()
 
@@ -213,22 +217,23 @@ def extract_background_patches(
         if patches_got == 0:
             stats["skipped_no_space"] += 1
 
-        # 进度打印
+        # progress
         if stats["processed"] % 200 == 0:
-            print(f"  已处理 {stats['processed']}/{stats['total_images']} 张图, "
-                  f"已创建 {stats['patches_created']} 个背景 patch")
+            print(f"  processed {stats['processed']}/{stats['total_images']} images, "
+                  f"{stats['patches_created']} background patches created")
 
     return stats
 
 
 # ============================================================
-# 主流程
+# main
 # ============================================================
 if __name__ == "__main__":
     random.seed(42)
 
-    # 路径配置
-    DATASET_DIR = Path(r"D:\Yolo\ultralytics-8.3.163\datasets\cucumber_new")
+    # Dataset root. Override with the environment variable CUCUMBER_DATASET_DIR,
+    # otherwise a relative path is assumed (see the README).
+    DATASET_DIR = Path(os.environ.get("CUCUMBER_DATASET_DIR", "datasets/cucumber_new"))
 
     TRAIN_IMG_DIR = DATASET_DIR / "train" / "images"
     TRAIN_LBL_DIR = DATASET_DIR / "train" / "labels"
@@ -237,15 +242,15 @@ if __name__ == "__main__":
     BG_LBL_DIR = DATASET_DIR / "background" / "labels"
 
     print("=" * 60)
-    print("  背景负样本提取工具")
+    print("  background negative-sample extraction")
     print("=" * 60)
-    print(f"\n  源图片目录: {TRAIN_IMG_DIR}")
-    print(f"  源标签目录:  {TRAIN_LBL_DIR}")
-    print(f"  输出图片:    {BG_IMG_DIR}")
-    print(f"  输出标签:    {BG_LBL_DIR}\n")
+    print(f"\n  source images: {TRAIN_IMG_DIR}")
+    print(f"  source labels: {TRAIN_LBL_DIR}")
+    print(f"  output images: {BG_IMG_DIR}")
+    print(f"  output labels: {BG_LBL_DIR}\n")
 
-    # 第二步：提取背景 patch
-    print("[1/2] 提取背景 patch...")
+    # step 1: extract the background patches
+    print("[1/2] extracting background patches...")
     stats = extract_background_patches(
         image_dir=str(TRAIN_IMG_DIR),
         label_dir=str(TRAIN_LBL_DIR),
@@ -259,20 +264,18 @@ if __name__ == "__main__":
     )
 
     print(f"\n{'='*60}")
-    print(f"  提取完成!")
+    print(f"  extraction finished")
     print(f"{'='*60}")
-    print(f"  处理图片:         {stats['processed']}")
-    print(f"  无黄瓜跳过:       {stats['skipped_no_cucumbers']}")
-    print(f"  空间不足跳过:     {stats['skipped_no_space']}")
-    print(f"  创建背景 patch:   {stats['patches_created']}")
-    print(f"  尺寸分布:")
+    print(f"  images processed:      {stats['processed']}")
+    print(f"  skipped, no cucumber:  {stats['skipped_no_cucumbers']}")
+    print(f"  skipped, no space:     {stats['skipped_no_space']}")
+    print(f"  background patches:    {stats['patches_created']}")
+    print(f"  size distribution:")
     for sz, cnt in sorted(stats['sizes_used'].items(), key=lambda x: -x[1]):
-        print(f"    {sz}px: {cnt} 张")
+        print(f"    {sz}px: {cnt}")
 
-    print(f"\n  输出目录:")
-    print(f"    图片: {BG_IMG_DIR}")
-    print(f"    标签: {BG_LBL_DIR}")
-    print(f"\n  下一步: 将背景图片和空标签合并到训练集中")
-    print(f"  合并命令示例 (Windows PowerShell):")
-    print(f"    Copy-Item '{BG_IMG_DIR}\\*' '{TRAIN_IMG_DIR}'")
-    print(f"    Copy-Item '{BG_LBL_DIR}\\*' '{TRAIN_LBL_DIR}'")
+    print(f"\n  output directories:")
+    print(f"    images: {BG_IMG_DIR}")
+    print(f"    labels: {BG_LBL_DIR}")
+    print(f"\n  next: merge the background images and the empty labels into the")
+    print(f"  training split with merge_background.py")

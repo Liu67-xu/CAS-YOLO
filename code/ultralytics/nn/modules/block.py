@@ -247,54 +247,56 @@ class LSKA(nn.Module):
 
     Paper: LSKA: Large Separable Kernel Attention (2023).
 
-    把一个大核 depth-wise 卷积拆成 水平 + 垂直 两个 1D depth-wise 卷积，
-    以很低的花销获得大感受野；再用一个小核 depth-wise 卷积补充局部细节，
-    最后经 point-wise 投影 + sigmoid 对输入逐像素重标定。
-    输入/输出: (B, C, H, W) -> (B, C, H, W)
+    A large-kernel depth-wise convolution is split into one horizontal and one
+    vertical 1D depth-wise convolution, which gives a large receptive field at
+    low cost; a small-kernel depth-wise convolution then restores local detail,
+    and a point-wise projection followed by a sigmoid re-weights the input
+    pixel by pixel. Input/output: (B, C, H, W) -> (B, C, H, W).
     """
 
     def __init__(self, dim: int, k_size: int = 21):
         """
         Args:
-            dim: 输入通道数 C
-            k_size: 大核尺寸（拆成 (1, k) 与 (k, 1) 两个 1D 卷积）
+            dim: number of input channels C
+            k_size: size of the large kernel, split into a (1, k) and a (k, 1) 1D convolution
         """
         super().__init__()
-        # ---- Stage 1: 大核卷积分解（depth-wise）----
+        # ---- Stage 1: decompose the large kernel (depth-wise) ----
         self.conv0h = nn.Conv2d(dim, dim, kernel_size=(1, k_size), padding=(0, k_size // 2), groups=dim)
         self.conv0v = nn.Conv2d(dim, dim, kernel_size=(k_size, 1), padding=(k_size // 2, 0), groups=dim)
-        # ---- Recompute: 小核卷积补充局部信息 ----
+        # ---- small kernel: restore local information ----
         self.conv_spatial = nn.Conv2d(dim, dim, 1, 1, 0, groups=1, bias=False)
-        # ---- Stage 2: 第二次大核卷积分解（depth-wise）----
+        # ---- Stage 2: second large-kernel decomposition (depth-wise) ----
         self.conv1h = nn.Conv2d(dim, dim, kernel_size=(1, k_size), padding=(0, k_size // 2), groups=dim)
         self.conv1v = nn.Conv2d(dim, dim, kernel_size=(k_size, 1), padding=(k_size // 2, 0), groups=dim)
-        # ---- Point-wise 投影 + sigmoid 门控 ----
+        # ---- point-wise projection and sigmoid gating ----
         self.conv2 = nn.Conv2d(dim, dim, 1, 1, 0, groups=1, bias=False)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """Apply large separable kernel attention to the input."""
         u = x
-        attn = self.conv0v(self.conv0h(x))  # 大核感受野
-        attn = self.conv_spatial(attn)  # 局部细节
-        attn = self.conv1v(self.conv1h(attn))  # 再提一次大核感受野
-        attn = self.conv2(attn).sigmoid()  # 门控权重
+        attn = self.conv0v(self.conv0h(x))  # large-kernel receptive field
+        attn = self.conv_spatial(attn)  # local detail
+        attn = self.conv1v(self.conv1h(attn))  # large-kernel receptive field again
+        attn = self.conv2(attn).sigmoid()  # gating weights
         return u * attn
 
 
 class SPPF_LSKA(nn.Module):
     """Spatial Pyramid Pooling - Fast with LSKA attention.
 
-    在标准 SPPF 多尺度池化拼接之后、最终 1x1 投影之前，
-    用 LSKA 大核注意力对融合的多尺度特征做感受野增强。
+    Applied after the standard SPPF multi-scale pooling and concatenation, and
+    before the final 1x1 projection, to enlarge the receptive field of the
+    fused multi-scale features with LSKA attention.
     """
 
     def __init__(self, c1: int, c2: int, k: int = 5, lska_k: int = 21):
         """
         Args:
-            c1: 输入通道数
-            c2: 输出通道数
-            k: SPPF 最大池化核大小（默认 5，等价于 SPP(k=(5,9,13))）
-            lska_k: LSKA 大核尺寸
+            c1: number of input channels
+            c2: number of output channels
+            k: SPPF max-pooling kernel size (default 5, equivalent to SPP(k=(5, 9, 13)))
+            lska_k: size of the LSKA large kernel
         """
         super().__init__()
         c_ = c1 // 2  # hidden channels

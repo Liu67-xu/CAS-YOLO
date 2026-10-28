@@ -22,11 +22,24 @@ redistributed (section 3).
     cd CAS-YOLO
 
 Replace USERNAME with the account that hosts this repository. The repository is
-the working copy, so every file can be browsed and diffed on its own; a
-permanent snapshot is archived at https://doi.org/10.5281/zenodo.23058154.
+the working copy, so every file can be browsed and diffed on its own.
 
 Python 3.11 and about 20 MB of disk are needed for the code and the weights.
 The images are added separately, see section 3.
+
+
+Quick start
+-----------
+
+    pip install ultralytics==8.3.163   # then copy code/ultralytics/ over the installed package
+    python code/set_path.py            # point the dataset definition at this repository
+    yolo val model=weights/CAS-YOLO_best.pt data=code/configs/cucumber_dataset.yaml imgsz=640 batch=20
+
+The first line is not optional: C2f_Att, ASFF and CA are not part of stock
+ultralytics, so without the copied files the weights cannot be unpickled.
+Section 4 gives the same three steps with the commands for Windows and Linux,
+the expected output of the two validations, and the tolerance to accept.
+Section 3 explains how to obtain the images, which are not redistributed here.
 
 
 1. Contents
